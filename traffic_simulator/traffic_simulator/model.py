@@ -15,11 +15,11 @@ class Location(Object):
 class Trip(Object):
     start: Location
     end: Location
-    length: int = 0
+    distance: int = 0
 
     def __post_init__(self):
-        if self.length <= 0:
-            raise TypeError(f'Trip length has to greater than 0 km.')
+        if self.distance <= 0:
+            raise TypeError(f'Trip distance (length) has to greater than 0 km.')
 
 @dataclass(frozen=True)
 class Road(Object):
