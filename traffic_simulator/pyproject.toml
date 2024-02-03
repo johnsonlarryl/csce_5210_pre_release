@@ -1,10 +1,12 @@
 [tool.poetry]
-name = "project_1"
+name = "traffic_simulator"
 version = "0.1.0"
 description = ""
 authors = ["Larry Johnson <johnson.larryl@gmail.com>"]
 
 [tool.poetry.dependencies]
+networkx = "^3.2.1"
+pandas = "^2.2.0"
 python = "^3.9"
 
 [tool.poetry.dev-dependencies]
