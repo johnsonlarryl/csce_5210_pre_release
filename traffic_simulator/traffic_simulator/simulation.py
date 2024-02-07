@@ -14,8 +14,7 @@ class Simulator:
                      connectedness=0.05,
                      seed=1000,
                      min_road_weight=5,
-                     max_road_weight=25,
-                     shortest_path_algo=ShortestPathAlgo.DIJKSTRA) -> Graph:
+                     max_road_weight=25) -> Graph:
 
         city_map = Simulator.generate_city_map(locations, connectedness, seed)
 
@@ -29,21 +28,24 @@ class Simulator:
         return city_map
 
     @staticmethod
-    def generate_trips(city_map: Graph, trip_count: int = 100) -> List[Trip]:
+    def generate_trips(city_map: Graph, shortest_path_algo=ShortestPathAlgo.DIJKSTRA, trip_count: int = 100) -> List[Trip]:
         for i in range(0, trip_count):
-            # TODO - This should x and y vs. start and end and then get the edge between the two
-            start, end = Simulator.get_random_locations(city_map)
-            trip_volume = Simulator.get_shortest_path(start, end)
+            start, destination = Simulator.get_random_locations(city_map)
+            Simulator.generate_traffic(start, destination, shortest_path_algo)
 
-            # TODO Get edge for
+    @staticmethod
+    def generate_traffic(city_map: Graph, start: int, destination: int, shortest_path_algo: ShortestPathAlgo) -> None:
 
-            if not attr['traffic_volume']:
-                attr['traffic_volume'] += get_shortest_path(x, y)
-            else:
-             attr['traffic_volume'] += 0
+        # TODO Get edge for
+        roads = Simulator.get_shortest_path(city_map, start, destination, shortest_path_algo)
 
-            traffic_volume: int = 0
+        for i in len(roads - 2):
+            for
 
+        if not attr['traffic_volume']:
+            attr['traffic_volume'] +=
+        else:
+            attr['traffic_volume'] += 0
     @staticmethod
     def is_connected(city_map: Graph) -> bool:
         return nx.is_connected(city_map)
@@ -54,11 +56,11 @@ class Simulator:
 
     # TODO - Move to traffic analysis for calculating the benefit
     @staticmethod
-    def get_shortest_path(city_map: Graph, start: int, destination: int, shortest_path_algo: ShortestPathAlgo):
+    def get_shortest_path(city_map: Graph, start: int, destination: int, shortest_path_algo: ShortestPathAlgo) -> List[int]:
         if shortest_path_algo == ShortestPathAlgo.A_STAR.value:
-            return nx.astar_path_length(city_map, start, destination)
+            return nx.astar_path(city_map, start, destination)
         elif shortest_path_algo == ShortestPathAlgo.DIJKSTRA.value:
-            return nx.dijkstra_path_length(city_map, start, destination)
+            return nx.dijkstra_path(city_map, start, destination)
 
     # TODO - This should get a random adjency node not a random node
     @staticmethod

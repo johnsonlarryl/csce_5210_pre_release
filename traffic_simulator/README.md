@@ -59,7 +59,7 @@ The system is designed with three major components which is the city map or grap
 | Traffic Analyzer  | Python DP algorithms to calculate the benefit of adding new budgeted roads.   |
 <br>
 
-<b>Figure 3 - System (Agent/Environmental) Topology Diagram</b>
+<b>Figure 3 - System (Agent/Environmental) Sequence Diagram</b>
 <br>
 <img src="images/system_topology_diagram.jpeg" alt="drawing" width="700"/>
 
@@ -117,7 +117,7 @@ The expected reward of the given actin (a) of the agent, which in this case is t
 
 <b>Expected reward given the action (a) is selected:</b>
 
-<img src="https://latex.codecogs.com/gif.latex?q_{\pi}(a)%20=%20\mathbb{E}%20[R_t%20|%20A_t%20=%20a]" />
+<img src="https://latex.codecogs.com/gif.latex?q_{\text{*}}(a)%20=%20\mathbb{E}%20[R_t%20|%20A_t%20=%20a]" />
 
 <br>
 
@@ -127,9 +127,10 @@ t = time the action is taken <br>
 R = Reward given after the action is taken <br>
 A = Action actually taken <br>
 a = In general, the action taken to evaluate the recommended road benefit:
-<br>
+
 <br>
 <img src="https://latex.codecogs.com/gif.latex?\text{Benefit}(x,y)%20=%20\text({spd}(x,y)%20-%20d(x,y))%20*%20n_t(x,y)%20+n_t(y,x)%20=%20B1\\%20+%20\sum_{n%20\in%20N(y)}%20\max%20\left(%20\text{spd}(x,n1)%20-%20d(x,y)%20-%20d(y,n1),%200%20\right)*(%20n_t(x,n1)+%20n_t(n1,x))%20=%20B2%20\\%20+%20\sum_{n%20\in%20N(x)}%20\max%20\left(%20\text{spd}(y,n2)%20-%20d(x,y)-%20d(x,n2),%200%20\right)*%20(n_t(y,n2)%20+%20n_t(n2,y))%20=%20B3" />
+<br>
 
 Estimation of the average rewards actually received:
 
@@ -137,14 +138,23 @@ Estimation of the average rewards actually received:
 
 where the indicator function 1 predicate denotes the random variable that is 1 if the predicate is true and 0 if it is not.
 
-If the denominator is 0 then we instead define Qt(a) as some default value, such as 0.  As the denominator goes to infinity, Qt(a) coverges to q*(a).  This proof is defined by the limit below.
+Note, At is the greedy action to select the roads that have the greatest beneft to the city:
+
+<img src="https://latex.codecogs.com/gif.latex?A_t%20=%20\underset{a}{\mathrm{argmax}}%20\%20Q_t(a)" />
+<br>
+
+where argmax(a) denotes the action (a) for which the expression that follows is maximized (with ties broken arbitrarily).  In this particular problem, we will simply choose the roads that have the greatest benefit in descending order.  Greed action selection always exploits current knowledge to maximiize immediate reward.  In other words, the city planner will spend no time sampling inferior road benefits to see if other roads might really benefit the city even more.
+
+If the denominator of the reward estimation function is 0 then we instead define Qt(a) as some default value, such as 0.  As the denominator goes to infinity, Qt(a) coverges to q*(a).  This proof is defined by the limit below.
 
 Assume the benefit B(x,y) is defined on rewards for all tuples (x,y) in some open interval containing the rewards actually received Qt(a), except possibly at Qt(a). The limit of B(x,y) as (x,y) approaches Qt(a) is L:
 
 <img src="https://latex.codecogs.com/gif.latex?\lim_{(x,y)%20\to%20Q_t(a)}%20B(x,y)%20=%20L" />
 <br>
 <br>
-where for every ε > 0 there is a δ > 0 such that if for any number of recommendations 0 < |(x,y) - Qt(a)| < δ, then |B(x,y) - L| < ε.
+where for every ε > 0 there is a δ > 0 such that if for any number of road recommendations 0 < |(x,y) - Qt(a)| < δ, then |B(x,y) - L| < ε.
+
+<br>
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -217,8 +227,8 @@ on examples of how to use the notebook.
 
 <!-- ACKNOWLEDGEMENT -->
 ## Acknowledgements
-Richard S. Sutton, Andrew G. Barto. Reinforcement Learning, second edition: An Introduction (Adaptive Computation and Machine Learning series), 2nd edition. Bradford Books, 2018.
-Peter Norvig, Stuart Russell. Artificial Intelligence: A Modern Approach, Global Edition, 4th edition. Pearson, 2021.
+* Richard S. Sutton, Andrew G. Barto. Reinforcement Learning, second edition: An Introduction (Adaptive Computation and Machine Learning series), 2nd edition. Bradford Books, 2018.
+* Peter Norvig, Stuart Russell. Artificial Intelligence: A Modern Approach, Global Edition, 4th edition. Pearson, 2021.
 
 <!-- CONTACT -->
 
