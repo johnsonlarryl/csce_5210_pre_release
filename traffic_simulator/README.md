@@ -70,16 +70,17 @@ The system is designed with three major components which is the city map or grap
 The various variables or parameters that will be utilized within the city map, traffic simulator, and traffic analyzer are outlined in Table 4.
 <b>Table 4 - Parameters</b>
 
-|             | Variable | Description                                                      | Data Type | Fixed Value | Default Value | Rule                                                                                                                  | 
-|-------------|----------|------------------------------------------------------------------|-----------|-------------|---------------|-----------------------------------------------------------------------------------------------------------------------|
-| Requirement |          |                                                                  |           |             |               |                                                                                                                       | 
-| R3-R5       | N        | Number of locations (nodes) in the network                       | integer   | 60          |               |                                                                                                                       |   
-| R3-R5       | p        | Average connectivity of nodes across the network                 | float     |             |               |                                                                                                                       |
-| R2          | ""       | ""                                                               | ""        | 5.00        |               |                                                                                                                       |
-| R3-R5       | ""       | ""                                                               | ""        | 0.05        |               | If .05 does not result in a connected network increase the value progressively by .01 until connectivity is obtained. |  
-| R2-R5       | L        | Road length parameter                                            | integer   |             | 100           | Existing Roads: range(5, 25), New Roads:  d(X,Y) = f(sp(X,Y)) -See Simulation Function sp()                           |  
-| R2-R5       | T        | Number of trips to be generated at each clock tick               | integer   |             | 3             |                                                                                                                       |   
-| R2-R5       | f        | Shrinkage factor to use when determining the size of a new road. | float     |             | 3             | rand(0.6, 0.8)                                                                                                        |   
+|             | Variable | Description                                                       | Data Type | Fixed Value | Default Value | Rule                                                                                                                  | 
+|-------------|----------|-------------------------------------------------------------------|-----------|-------------|---------------|-----------------------------------------------------------------------------------------------------------------------|
+| Requirement |          |                                                                   |           |             |               |                                                                                                                       | 
+| R3-R5       | N        | Number of locations (nodes) in the network                        | integer   | 60          |               |                                                                                                                       |   
+| R3-R5       | p        | Average connectivity of nodes across the network                  | float     |             |               |                                                                                                                       |
+| R2          | ""       | ""                                                                | ""        | 5.00        |               |                                                                                                                       |
+| R3-R5       | ""       | ""                                                                | ""        | 0.05        |               | If .05 does not result in a connected network increase the value progressively by .01 until connectivity is obtained. |  
+| R2-R5       | L        | Road length parameter                                             | integer   |             |               | Existing Roads: range(5, 25), New Roads:  d(X,Y) = f(sp(X,Y)) -See Simulation Function sp()                           |  
+| R2-R5       | T        | Number of trips to be generated at each clock tick                | integer   |             | 100           |                                                                                                                       |   
+| R2-R5       | k        | Number of new roads that can be budgeted                          | integer   |             | 3             |                                                                                                                       |
+| R2-R5       | f        | Shrinkage factor to use when determining the size of a new road.  | float     |             |               | rand(0.6, 0.8)                                                                                                        |   
 
 There will be many python functions implemented.  But, one of the requirements that must be met is the function below in Table 5.  
 <b>Table 5 - Functions </b>
@@ -104,11 +105,16 @@ The pseudo code for the Traffic Simulator module is outlined below:
 ### Traffic Analyzer
 The pseudo code for the Traffic Analyzer module is outlined below:
 ```shell
-    j = 0
-    build_benefit_matrix(x, y)
-    identify_roads_with_highest_benefit()
-    update_benefit_matrix(x, y)
-    j = j + 1
+    new_roads = 3
+    benefit_matrix(x, y)
+    build_benefit_matrix(benefit_matrix)
+     
+    for road in new_roads:
+      # Should randomly select two nodes that are not directly connected
+      build_new_road(city_map, road) 
+      update_benefit_matrix(benefit_matrix)
+  
+    identify_roads_with_highest_benefit(road, benefit_matrix)
 ````
 
 There are various mathematical proofs that must be theoretically applied.  Given the fact that there are n number of budgeted roads (eg. 3) a maximum benefit is never reached for this particular project.  However, for completeness and mathematical compliance the following proofs still apply.
@@ -129,7 +135,7 @@ A = Action actually taken <br>
 a = In general, the action taken to evaluate the recommended road benefit:
 
 <br>
-<img src="https://latex.codecogs.com/gif.latex?\text{Benefit}(x,y)%20=%20\text({spd}(x,y)%20-%20d(x,y))%20*%20n_t(x,y)%20+n_t(y,x)%20=%20B1\\%20+%20\sum_{n%20\in%20N(y)}%20\max%20\left(%20\text{spd}(x,n1)%20-%20d(x,y)%20-%20d(y,n1),%200%20\right)*(%20n_t(x,n1)+%20n_t(n1,x))%20=%20B2%20\\%20+%20\sum_{n%20\in%20N(x)}%20\max%20\left(%20\text{spd}(y,n2)%20-%20d(x,y)-%20d(x,n2),%200%20\right)*%20(n_t(y,n2)%20+%20n_t(n2,y))%20=%20B3" />
+<img src="https://latex.codecogs.com/gif.latex?\text{Benefit}(x,y)%20=%20\text({spd}(x,y)%20-%20d(x,y))%20*%20(n_t(x,y)%20+n_t(y,x))%20=%20B1\\%20+%20\sum_{n%20\in%20N(y)}%20\max%20\left(%20\text{spd}(x,n1)%20-%20d(x,y)%20-%20d(y,n1),%200%20\right)*(%20n_t(x,n1)+%20n_t(n1,x))%20=%20B2%20\\%20+%20\sum_{n%20\in%20N(x)}%20\max%20\left(%20\text{spd}(y,n2)%20-%20d(x,y)-%20d(x,n2),%200%20\right)*%20(n_t(y,n2)%20+%20n_t(n2,y))%20=%20B3" />
 <br>
 
 Estimation of the average rewards actually received:

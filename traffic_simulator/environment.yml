@@ -9,7 +9,9 @@ dependencies:
   - matplotlib
   - networkx
   - pandas
+  - pydot
   - pygraphviz
   - python=3.9.5
+  - pytest
   - scikit-learn
   - seaborn
