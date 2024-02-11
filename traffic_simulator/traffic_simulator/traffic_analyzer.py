@@ -133,17 +133,6 @@ class TrafficAnalyzer:
         return (shortest_path - (shortest_path * shrinkage_factor)) * \
             (source_to_destination_trips + destination_to_source_trips)
 
-        source_to_destination_trips = trips[TripFactory.create_trip(source, destination)].numer_of_trips
-        destination_to_source_trips = trips[TripFactory.create_trip(destination, source)].numer_of_trips
-
-        existing_road_shortest_path = CityMap.get_shortest_path_length(city_map, neighbor, destination)
-        new_road_shortest_path = CityMap.get_shortest_path_length(city_map, source, destination)
-        neighbor_shortest_path = CityMap.get_shortest_path_length(city_map, neighbor, source)
-
-        return round(max((new_road_shortest_path -
-                          (existing_road_shortest_path * shrinkage_factor + neighbor_shortest_path)), 0) *
-                     (source_to_destination_trips + destination_to_source_trips), 5)
-
     @staticmethod
     def _calculate_indirect_road_benefit(city_map: Graph,
                                          trips: Dict[Trip, Trip],

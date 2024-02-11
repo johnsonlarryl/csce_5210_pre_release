@@ -38,6 +38,8 @@ def generate_static_trips() -> Dict[Trip, Trip]:
     trip_h = TripFactory.create_trip(4, 1, 2)
     trip_i = TripFactory.create_trip(2, 3, 3)
     trip_j = TripFactory.create_trip(3, 2, 1)
+    trip_k = TripFactory.create_trip(10, 1, 24)
+    trip_l = TripFactory.create_trip(1, 10, 25)
 
     trips = {trip_a: trip_a,
              trip_b: trip_b,
@@ -45,10 +47,10 @@ def generate_static_trips() -> Dict[Trip, Trip]:
              trip_d: trip_d,
              trip_e: trip_e,
              trip_f: trip_f,
-             trip_g: trip_h,
+             trip_g: trip_g,
              trip_h: trip_h,
              trip_i: trip_i,
-             trip_j: trip_j}
+             trip_j: trip_j,}
 
     city_map = generate_static_city_map()
     possible_trips = CityMap.get_possible_trips(city_map)
