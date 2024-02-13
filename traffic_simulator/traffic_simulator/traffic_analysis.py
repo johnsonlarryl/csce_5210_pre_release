@@ -158,3 +158,8 @@ class TrafficAnalyzer:
                     destination: int):
         return benefit_matrix[((benefit_matrix["source"] == source) & (benefit_matrix["destination"] == destination)) |
                               ((benefit_matrix["source"] == destination) & (benefit_matrix["destination"] == source))]
+
+    @staticmethod
+    def get_max_road_benefit(benefit_matrix: DataFrame) -> DataFrame:
+        max_road_benefit = benefit_matrix[BENEFIT_MATRIX_COLUMNS[2]].idxmax()
+        return benefit_matrix.loc[[max_road_benefit]]

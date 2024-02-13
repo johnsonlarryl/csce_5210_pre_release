@@ -6,6 +6,7 @@ authors = ["Larry Johnson <johnson.larryl@gmail.com>"]
 
 [tool.poetry.dependencies]
 hypothesis = "^6.98.2"
+matplotlib = "^3.8.2"
 networkx = "^3.2.1"
 pandas = "^2.2.0"
 python = "^3.9"

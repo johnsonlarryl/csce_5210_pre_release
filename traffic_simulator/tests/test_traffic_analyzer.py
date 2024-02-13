@@ -3,7 +3,7 @@ from networkx.classes.graph import Graph
 from typing import Dict
 
 from traffic_simulator.model import Trip
-from traffic_simulator.traffic_analyzer import TrafficAnalyzer
+from traffic_simulator.traffic_analysis import TrafficAnalyzer
 
 
 def test_calculate_direct_road_benefit(static_city_map: Graph, static_city_trips: Dict[Trip, Trip]) -> None:

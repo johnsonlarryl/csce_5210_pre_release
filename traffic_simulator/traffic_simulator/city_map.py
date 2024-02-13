@@ -1,9 +1,9 @@
+
 from itertools import permutations
+import matplotlib.pyplot as plt
 import networkx as nx
 from networkx.classes.graph import Graph
-from random import randint
 from typing import Any, Dict, List, Set, Tuple
-from uuid import uuid4
 
 
 from traffic_simulator.model import Road, ShortestPathAlgo
@@ -30,22 +30,6 @@ class TripLinkedList:
 
 class CityMap:
     @staticmethod
-    def generate_map(locations=60,
-                     connectedness=0.05,
-                     seed=1000,
-                     min_road_weight=5,
-                     max_road_weight=25) -> Graph:
-
-        city_map = CityMap.generate_city_map(locations, connectedness, seed)
-
-        while not CityMap.is_connected(city_map):
-            city_map = CityMap.generate_city_map(locations, connectedness, seed)
-
-        for x, y, attr in city_map.edges(data=True):
-            attr['uid'] = uuid4()
-            attr['weight'] = randint(min_road_weight, max_road_weight)
-
-    @staticmethod
     def get_road_permutations(city_map: Graph,
                               source: int,
                               destination: int, shortest_path_algo: ShortestPathAlgo) -> List[Tuple[int, int]]:
@@ -56,13 +40,6 @@ class CityMap:
 
         return list(permutations(shortest_path))
 
-    @staticmethod
-    def generate_city_map(locations: int, connectedness: float, seed: int):
-        return nx.gnm_random_graph((locations, connectedness, seed))
-
-    @staticmethod
-    def is_connected(city_map: Graph) -> bool:
-        return nx.is_connected(city_map)
 
     @staticmethod
     def get_possible_trips(city_map: Graph) -> Set[Tuple[int, int]]:
@@ -100,3 +77,37 @@ class CityMap:
             return nx.astar_path_length(city_map, source, destination)
         elif shortest_path_algo == ShortestPathAlgo.DIJKSTRA:
             return nx.dijkstra_path_length(city_map, source, destination)
+
+    @staticmethod
+    def add_road_segment(city_map: Graph, source: int, destination: int, shrinkage_factor=0.6, shortest_path_algo=ShortestPathAlgo.DIJKSTRA) -> None:
+        road_length = nx.astar_path_length(city_map, source, destination) * shrinkage_factor
+        city_map.add_edge(source, destination, weight=road_length)
+
+    @staticmethod
+    def get_city_map_statistics(city_map: Graph) ->None:
+        print("node degree and node clustering")
+        for v in nx.nodes(city_map):
+            print(f"{v} {nx.degree(city_map, v)} {nx.clustering(city_map, v)}")
+
+        print()
+        print("the adjacency list")
+        for line in nx.generate_adjlist(city_map):
+            print(line)
+
+    @staticmethod
+    def visualize_city_map(city_map: Graph) -> None:
+        links = [(u, v) for (u, v, d) in city_map.edges(data=True)]
+        pos = nx.nx_pydot.graphviz_layout(city_map)
+        nx.draw_networkx_nodes(city_map, pos, node_size=1200, node_color='lightblue', linewidths=0.25)  # draw nodes
+        nx.draw_networkx_edges(city_map, pos, edgelist=links, width=4)  # draw edges
+
+        # node labels
+        nx.draw_networkx_labels(city_map, pos, font_size=20, font_family="sans-serif")
+
+        # edge weight labels
+        edge_labels = nx.get_edge_attributes(city_map, 'weight', 'trips')
+        print(edge_labels)
+        nx.draw_networkx_edge_labels(city_map, pos, edge_labels)
+
+        plt.show()
+

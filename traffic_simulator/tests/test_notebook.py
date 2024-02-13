@@ -1,4 +1,4 @@
-from traffic_simulator.traffic_analyzer import TrafficAnalyzer
+from traffic_simulator.traffic_analysis import TrafficAnalyzer
 from conftest import generate_static_city_map, generate_static_trips
 
 # city_map = generate_static_city_map()

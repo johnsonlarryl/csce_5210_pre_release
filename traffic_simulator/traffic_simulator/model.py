@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Dict, Optional
 
 
-BENEFIT_MATRIX_COLUMNS =  ["source", "destination", "benefit"]
+BENEFIT_MATRIX_COLUMNS = ["source", "destination", "benefit"]
 
 
 class ShortestPathAlgo(Enum):
@@ -39,6 +39,13 @@ class TripFactory:
         return Trip(source, destination, numer_of_trips)
 
 
+class TimeDeltaDiff(Enum):
+    SECONDS = "seconds"
+    MINUTES = "minutes"
+    HOURS = "hours"
+    DAYS = "days"
+    MONTHS = "months"
+    YEARS = "years"
 
 
 
