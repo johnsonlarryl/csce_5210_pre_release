@@ -5,6 +5,19 @@ from typing import Dict, Optional
 
 BENEFIT_MATRIX_COLUMNS = ["source", "destination", "benefit"]
 
+BENEFIT_MATRIX_TRUTH_TABLE_COLUMNS = ["x",
+                                      "y",
+                                      "nx_indirect_benefits",
+                                      "ny_indirect_benefits",
+                                      "nx_neighbor",
+                                      "ny_neighbor",
+                                      "indirect_x",
+                                      "indirect_y",
+                                      "has_edge_indirect_x_y",
+                                      "has_edge_nx_neighbor_indirect_y",
+                                      "has_edge_indirect_x_x",
+                                      "has_edge_ny_neighbor_indirect_y"]
+
 
 class ShortestPathAlgo(Enum):
     A_STAR = "astar"

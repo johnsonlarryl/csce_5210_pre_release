@@ -1,16 +1,17 @@
 from networkx.classes.graph import Graph
 from pandas import DataFrame
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 from traffic_simulator.city_map import CityMap
-from traffic_simulator.model import BENEFIT_MATRIX_COLUMNS, Trip, TripFactory
+from traffic_simulator.model import BENEFIT_MATRIX_COLUMNS, BENEFIT_MATRIX_TRUTH_TABLE_COLUMNS, Trip, TripFactory
 
 
 class TrafficAnalyzer:
     @staticmethod
     def get_road_recommendations(city_map: Graph,
                                  trips: Dict[Trip, Trip],
-                                 shrinkage_factor=0.6) -> DataFrame:
+                                 shrinkage_factor=0.6,
+                                 debug: bool = False) -> Union[DataFrame, Optional[Tuple[DataFrame, DataFrame, DataFrame, DataFrame]]]:
         """
         Generates benefit matrix based on the city map or graph and the list of trips across each road segment
         The result of the matrix should look something like the following:
@@ -29,6 +30,8 @@ class TrafficAnalyzer:
         """
         road_candidates = CityMap.get_new_road_candidates(city_map)
         benefit_matrix_data = []
+        n1_n2_truth_table: List[Tuple[int, int, Set, Set, int, int, int, int, str, str, str, str]] = []
+
 
         for candidate in road_candidates:
             x = candidate[0]
@@ -39,20 +42,42 @@ class TrafficAnalyzer:
             nx_indirect_benefits = set()
             ny_indirect_benefits = set()
 
-            TrafficAnalyzer._calculate_all_road_benefits(city_map,
-                                                         trips,
-                                                         benefit_matrix_data,
-                                                         shrinkage_factor,
-                                                         x,
-                                                         y,
-                                                         n1,
-                                                         n2,
-                                                         nx_indirect_benefits,
-                                                         ny_indirect_benefits)
+            if debug:
+                n1, n2, n1_n2_truth_table = TrafficAnalyzer._calculate_all_road_benefits(city_map,
+                                                                                         trips,
+                                                                                         benefit_matrix_data,
+                                                                                         shrinkage_factor,
+                                                                                         x,
+                                                                                         y,
+                                                                                         n1,
+                                                                                         n2,
+                                                                                         nx_indirect_benefits,
+                                                                                         ny_indirect_benefits,
+                                                                                         n1_n2_truth_table,
+                                                                                         debug)
+            else:
+               TrafficAnalyzer._calculate_all_road_benefits(city_map,
+                                                            trips,
+                                                            benefit_matrix_data,
+                                                            shrinkage_factor,
+                                                            x,
+                                                            y,
+                                                            n1,
+                                                            n2,
+                                                            nx_indirect_benefits,
+                                                            ny_indirect_benefits,
+                                                            debug)
+
 
         benefit_matrix_data = DataFrame(benefit_matrix_data, columns=BENEFIT_MATRIX_COLUMNS)
+        benefit_matrix_data.sort_values(by='benefit', ascending=False, inplace=True)
 
-        return benefit_matrix_data.sort_values(by='benefit', ascending=False)
+        if debug:
+            n1_n2_truth_table_data = DataFrame(n1_n2_truth_table, columns=BENEFIT_MATRIX_TRUTH_TABLE_COLUMNS)
+
+            return benefit_matrix_data, n1, n2, n1_n2_truth_table_data
+        else:
+            return benefit_matrix_data
 
     @staticmethod
     def _calculate_all_road_benefits(city_map: Graph,
@@ -64,7 +89,9 @@ class TrafficAnalyzer:
                                      n1: Set[int],
                                      n2: Set[int],
                                      nx_indirect_benefits: Set,
-                                     ny_indirect_benefits: Set) -> None:
+                                     ny_indirect_benefits: Set,
+                                     n1_n2_truth_table: List[Tuple[int, int, Set, Set, int, int, int, int, str, str, str, str]],
+                                     debug: bool = False) -> Optional[Tuple[DataFrame, DataFrame, DataFrame]]:
         indirect_road_benefits = 0
 
         direct_road_benefits = TrafficAnalyzer._calculate_direct_road_benefit(city_map,
@@ -79,10 +106,12 @@ class TrafficAnalyzer:
                                                                                                     nx_neighbor))
 
             for nx_indirect_benefit in nx_indirect_benefits:
-                indirect_x = nx_indirect_benefit[0]
-                indirect_y = nx_indirect_benefit[1]
+                indirect_x: int = nx_indirect_benefit[0]
+                indirect_y: int = nx_indirect_benefit[1]
+                has_edge_indirect_x_y = city_map.has_edge(indirect_x, y)
+                has_edge_nx_neighbor_indirect_y = city_map.has_edge(nx_neighbor, indirect_y)
 
-                if city_map.has_edge(indirect_x, y) and city_map.has_edge(nx_neighbor, indirect_y):
+                if has_edge_indirect_x_y and has_edge_nx_neighbor_indirect_y:
                     indirect_road_benefits += TrafficAnalyzer._calculate_indirect_road_benefit(city_map,
                                                                                                trips,
                                                                                                y,
@@ -90,26 +119,91 @@ class TrafficAnalyzer:
                                                                                                indirect_y,
                                                                                                shrinkage_factor)
 
+                if debug:
+                    ny_neighbor = -1
+                    has_edge_indirect_x_x = "F"
+                    has_edge_ny_neighbor_indirect_y = "F"
+                    ny_indirect_benefits = set()
+                    has_edge_indirect_x_y = TrafficAnalyzer.get_truth_table_value(city_map.has_edge(indirect_x, y))
+                    has_edge_nx_neighbor_indirect_y = TrafficAnalyzer.get_truth_table_value(city_map.has_edge(nx_neighbor, indirect_y))
+
+                    n1_n2_truth_table.append((x,
+                                              y,
+                                              nx_neighbor,
+                                              ny_neighbor,
+                                              indirect_x,
+                                              indirect_y,
+                                              has_edge_indirect_x_y,
+                                              has_edge_nx_neighbor_indirect_y,
+                                              has_edge_indirect_x_x,
+                                              has_edge_ny_neighbor_indirect_y))
+
+
         for ny_neighbor in n2:
             ny_indirect_benefits = ny_indirect_benefits.union(TrafficAnalyzer._get_indirect_benefit(city_map,
                                                                                                     y,
                                                                                                     ny_neighbor))
 
             for ny_indirect_benefit in ny_indirect_benefits:
-                indirect_x = ny_indirect_benefit[0]
-                indirect_y = ny_indirect_benefit[1]
+                indirect_x: int = ny_indirect_benefit[0]
+                indirect_y: int = ny_indirect_benefit[1]
 
-                if city_map.has_edge(indirect_x, x) and city_map.has_edge(ny_neighbor, indirect_y):
+                has_edge_indirect_x_x = city_map.has_edge(indirect_x, x)
+                has_edge_ny_neighbor_indirect_y = city_map.has_edge(ny_neighbor, indirect_y)
+
+                if has_edge_indirect_x_x and has_edge_ny_neighbor_indirect_y:
                     indirect_road_benefits += TrafficAnalyzer._calculate_indirect_road_benefit(city_map,
                                                                                                trips,
                                                                                                x,
                                                                                                indirect_x,
                                                                                                indirect_y,
                                                                                                shrinkage_factor)
+                if debug:
+                    nx_neighbor = -1
+                    has_edge_indirect_x_y = "F"
+                    has_edge_nx_neighbor_indirect_y = "F"
+                    nx_indirect_benefits = set()
+                    has_edge_indirect_x_x = TrafficAnalyzer.get_truth_table_value(has_edge_indirect_x_x)
+                    has_edge_ny_neighbor_indirect_y = TrafficAnalyzer.get_truth_table_value(has_edge_ny_neighbor_indirect_y)
+
+                    n1_n2_truth_table.append((x,
+                                              y,
+                                              nx_indirect_benefits,
+                                              ny_indirect_benefits,
+                                              nx_neighbor,
+                                              ny_neighbor,
+                                              indirect_x,
+                                              indirect_y,
+                                              has_edge_indirect_x_y,
+                                              has_edge_nx_neighbor_indirect_y,
+                                              has_edge_indirect_x_x,
+                                              has_edge_ny_neighbor_indirect_y))
+
+        if indirect_road_benefits == 0:
+            n1_n2_truth_table.append((x,
+                                      y,
+                                      -1,
+                                      -1,
+                                      -1,
+                                      -1,
+                                      "F",
+                                      "F",
+                                      "F",
+                                      "F"))
+
 
         b = direct_road_benefits + indirect_road_benefits
 
         benefit_matrix_data.append((x, y, b))
+
+        if debug:
+            return n1, n2, n1_n2_truth_table
+        else:
+            return
+
+    @staticmethod
+    def get_truth_table_value(value: bool) -> str:
+        return "T" if value else "F"
 
     @staticmethod
     def _get_indirect_benefit(city_map, source, destination):

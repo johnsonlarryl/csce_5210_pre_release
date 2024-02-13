@@ -40,7 +40,6 @@ class CityMap:
 
         return list(permutations(shortest_path))
 
-
     @staticmethod
     def get_possible_trips(city_map: Graph) -> Set[Tuple[int, int]]:
         locations = list(city_map.nodes())
