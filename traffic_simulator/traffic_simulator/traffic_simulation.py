@@ -38,9 +38,9 @@ class Simulator:
                        ) -> Dict[Trip, Trip]:
         trips = {}
 
-        for _ in Simulator.get_number_trips_to_generate(traffic_start_date,
+        for _ in range(Simulator.get_number_trips_to_generate(traffic_start_date,
                                                         traffic_end_date,
-                                                        traffic_time_delta_difference):
+                                                        traffic_time_delta_difference)):
             source, destination = Simulator.get_random_locations(city_map)
             trip = TripFactory.create_trip(source, destination)
 
@@ -53,7 +53,7 @@ class Simulator:
 
     @staticmethod
     def generate_city_map(locations: int, connectedness: float, seed: int):
-        return nx.gnm_random_graph((locations, connectedness, seed))
+        return nx.gnm_random_graph(locations, connectedness, seed)
 
     @staticmethod
     def is_connected(city_map: Graph) -> bool:
@@ -63,24 +63,20 @@ class Simulator:
     def get_number_trips_to_generate(traffic_start_date: datetime,
                                      traffic_end_date: datetime,
                                      traffic_time_delta_difference):
+        difference = relativedelta(traffic_end_date, traffic_start_date)
+
         if traffic_time_delta_difference == TimeDeltaDiff.SECONDS:
-            return int(relativedelta(traffic_start_date - traffic_end_date).total_seconds())
+            return int((traffic_end_date - traffic_start_date).total_seconds())
         elif traffic_time_delta_difference == TimeDeltaDiff.MINUTES:
-            return int(relativedelta(traffic_start_date - traffic_end_date).minutes)
+            return int(difference.minutes)
         elif traffic_time_delta_difference == TimeDeltaDiff.HOURS:
-            return int(relativedelta(traffic_start_date - traffic_end_date).hours)
+            return int(difference.hours)
         elif traffic_time_delta_difference == TimeDeltaDiff.DAYS:
-            return int(relativedelta(traffic_start_date - traffic_end_date).days)
+            return int(difference.days)
         elif traffic_time_delta_difference == TimeDeltaDiff.DAYS:
             return int(relativedelta(traffic_start_date - traffic_end_date).months)
         elif traffic_time_delta_difference == TimeDeltaDiff.YEARS:
-            return int(relativedelta(traffic_start_date - traffic_end_date).years)
-
-    @staticmethod
-    def generate_trips(city_map: Graph, shortest_path_algo=ShortestPathAlgo.DIJKSTRA, trip_count: int = 100) -> None:
-        for i in range(0, trip_count):
-            source, destination = Simulator.get_random_locations(city_map)
-            Simulator.generate_traffic(source, destination, shortest_path_algo)
+            return int(difference.years)
 
     @staticmethod
     def generate_traffic(city_map: Graph, source: int, destination: int, shortest_path_algo: ShortestPathAlgo) -> None:

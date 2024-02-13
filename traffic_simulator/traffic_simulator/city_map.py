@@ -95,14 +95,14 @@ class CityMap:
             print(line)
 
     @staticmethod
-    def visualize_city_map(city_map: Graph) -> None:
+    def visualize_city_map(city_map: Graph, location_size=1200, location_font_size=20, road_widths=4) -> None:
         links = [(u, v) for (u, v, d) in city_map.edges(data=True)]
         pos = nx.nx_pydot.graphviz_layout(city_map)
-        nx.draw_networkx_nodes(city_map, pos, node_size=1200, node_color='lightblue', linewidths=0.25)  # draw nodes
-        nx.draw_networkx_edges(city_map, pos, edgelist=links, width=4)  # draw edges
+        nx.draw_networkx_nodes(city_map, pos, node_size=location_size, node_color='lightblue', linewidths=0.25)  # draw nodes
+        nx.draw_networkx_edges(city_map, pos, edgelist=links, width=road_widths)  # draw edges
 
         # node labels
-        nx.draw_networkx_labels(city_map, pos, font_size=20, font_family="sans-serif")
+        nx.draw_networkx_labels(city_map, pos, font_size=location_font_size, font_family="sans-serif")
 
         # edge weight labels
         edge_labels = nx.get_edge_attributes(city_map, 'weight', 'trips')

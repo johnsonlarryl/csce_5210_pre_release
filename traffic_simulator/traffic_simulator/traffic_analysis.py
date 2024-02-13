@@ -50,7 +50,9 @@ class TrafficAnalyzer:
                                                          nx_indirect_benefits,
                                                          ny_indirect_benefits)
 
-        return DataFrame(benefit_matrix_data, columns=BENEFIT_MATRIX_COLUMNS)
+        benefit_matrix_data = DataFrame(benefit_matrix_data, columns=BENEFIT_MATRIX_COLUMNS)
+
+        return benefit_matrix_data.sort_values(by='benefit', ascending=False)
 
     @staticmethod
     def _calculate_all_road_benefits(city_map: Graph,
