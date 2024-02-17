@@ -7,10 +7,10 @@ BENEFIT_MATRIX_COLUMNS = ["source", "destination", "benefit"]
 
 BENEFIT_MATRIX_TRUTH_TABLE_COLUMNS = ["x",
                                       "y",
-                                      "nx_indirect_benefits",
-                                      "ny_indirect_benefits",
                                       "nx_neighbor",
                                       "ny_neighbor",
+                                      "nx_indirect_benefits",
+                                      "ny_indirect_benefits",
                                       "indirect_x",
                                       "indirect_y",
                                       "has_edge_indirect_x_y",
