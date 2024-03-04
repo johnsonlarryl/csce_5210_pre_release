@@ -42,13 +42,13 @@ The SA algorithm "is a probabilistic technique for approximating the global opti
 
 The CSP for the job scheduling problem is modeled as follows:
 * Scope is composed of the following variables:
-  * Machine - Resource that performs the operations
+  * Machine - Resource that performs the operations.
   * Job - Individual unit of work that needs to be completed.
   * Operation - Atomic steps or tasks that are needed to complete the overall job.
 * Relation composed of the following values:
-  * Number of machines online
-  * Number of jobs scheduled per machine
-  * Number of operations scheduled per job
+  * Number of machines online.
+  * Number of jobs scheduled per machine.
+  * Number of operations scheduled per job.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
