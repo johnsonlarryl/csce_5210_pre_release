@@ -113,18 +113,18 @@ The various variables or parameters that will be utilized within the job schedul
 The pseudo code for the Job Scheduler module is outlined below.  The code essentially outlines the usage of an empirical gradient where progress is measured by the objective function to minimize the makespan.  This is accomplished by evaluating the scheduling differences between the next job operation and the current one.
 ```shell
     T = 1000 	# Set the initial temperature T
-    schedule.create_schedule(n_jobs)
+    schedule.create_schedule(machines, jobs)
     
-    machine.schedule_jobs(schedule, n_operations)
+    machine.schedule_jobs(schedule, operations)
     
     for in range(0, 400) then:
-        job_schedule_analyzer.analyze_schedule(schedule)
+        schedule_optimizer.analyze_schedule(schedule)
             
-        machine.schedule_jobs(schedule, n_operations)
+        machine.schedule_jobs(schedule, operations)
         
-        job_schedule_analyzer.analyze_schedule(schedule)
+        schedule_optimizer.analyze_schedule(schedule)
         
-        ∆E = job_schedule_analyzer.minimize_execution_time(schedule)
+        ∆E = schedule_optimzer.minimize_execution_time(schedule)
 
         if ∆E > 0 then: 
           current=next
@@ -143,8 +143,8 @@ The pseudo code for the Job Scheduler module is outlined below.  The code essent
           return current
 ```
 
-### Job Scheduler Analyzer
-The pseudo code for the Job Scheduler Analyzer module is outlined below:
+### Scheduler Optimizer
+The pseudo code for the Scheduler Optimizer module is outlined below:
 ```shell
 # successor function 
 function analyze_schedule(schedule): 
