@@ -107,19 +107,23 @@ class JobScheduler:
 
     @staticmethod
     def visualize_schedule(schedule: DiGraph, operation_size=550, location_font_size=10, operation_widths=1) -> None:
-        links = [(u, v) for (u, v, d) in schedule.edges(data=True)]
-        pos = nx.spring_layout(schedule)
-        nx.draw_networkx_nodes(schedule,
-                               pos,
-                               node_size=operation_size,
-                               node_color='lightblue',
-                               linewidths=0.25)
-        nx.draw_networkx_edges(schedule, pos, edgelist=links, width=operation_widths)
 
-        nx.draw_networkx_labels(schedule, pos, font_size=location_font_size, font_family="sans-serif")
+        pos = nx.nx_agraph.graphviz_layout(schedule, prog='dot')
+        plt.figure(figsize=(12, 8))
 
+        nx.draw(schedule, pos, with_labels=True, node_size=600, node_color="lightblue", font_size=10, arrows=True)
+
+        # Edge labels workaround for potential multiedge issue
         edge_labels = dict(((u, v), d['weight']) for u, v, d in schedule.edges(data=True))
-        nx.draw_networkx_edge_labels(schedule, pos, edge_labels)
+        for (u, v), weight in edge_labels.items():
+            label = f"{weight}"
+            x, y = pos[u]
+            dx, dy = pos[v]
+            plt.text(x * 0.5 + dx * 0.5, y * 0.5 + dy * 0.5,
+                     label,
+                     horizontalalignment='center',
+                     verticalalignment='center',
+                     bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.2'))
 
         plt.show()
 
