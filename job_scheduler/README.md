@@ -6,14 +6,12 @@ The application is centered around a real-world scheduling problem. This project
 
 In job scheduling J jobs are scheduled for processing at M machines. Each job has a fixed number of operations (N). The problem then is to allocate the jobs and their corresponding operations such that the overall completion time (referred to as the makespan) is minimized.
 
-<b>Figure 1 - Job Schedule Optimization</b>
-
-<img src="./images/job_schedule_optimization.jpg" width="400" height="300">
+<img src="images/job_schedule_optimization.jpg" width="400" height="300">
 
 <!-- Design -->
 ## Agent Architecture
 
-This project will utilize a model-based, utility-based agent.  The agent will be an Informed Search heuristics that implements a combinatorial optimization algorithm known as Simulated Annealing (SA).  As a factored representation, SA consists of various states where each state consists of a vector of attribute values.  In general, "combinatorial optimization problems can be viewed as searching for the best element of some sort of discrete items"[^1].  As NP complete, or O(bn), problems where N is the number of actions and b or P is the maximum branch factor into or out of an action. An NP optimization (NPO) problem has the following properties [^1]:
+This project will utilize a model-based, utility-based agent.  The agent will be an Informed Search heuristics that implements a combinatorial optimization algorithm known as Simulated Annealing (SA).  As a factored representation, SA consists of various states where each state consists of a vector of attribute values.  In general, "combinatorial optimization problems can be viewed as searching for the best element of some sort of discrete items"[^1].  As a Non-deterministic Problem (NP) complete or problems solutions can take any basic derivation of O(bn) where n is the number of actions and b is the maximum branch factor into or out of an action. An NP optimization (NPO) problem has the following properties [^1]:
 * the size oef every feasible solution y ∈ f(x) is polynomially bounded in the size given instance x [and I is the set of input instances],
 * the languages { x | x ∈ I } and { (x, y) | y ∈ f(x) } can be recognized in polynomial time, and
 * m is the polynomial-time computable.
@@ -45,7 +43,7 @@ The CSP for the job scheduling problem is modeled as follows:
   * Machine - Resource that performs the operations.
   * Job - Individual unit of work that needs to be completed.
   * Operation - Atomic steps or tasks that are needed to complete the overall job.
-* Relation composed of the following values:
+* Relation is composed of the following values:
   * Number of machines online.
   * Number of jobs scheduled per machine.
   * Number of operations scheduled per job.
@@ -64,20 +62,20 @@ The system is designed exclusively with model objects such as jobs, operations, 
 | Job  | Individual unit of work that needs to be completed. | 
 | Operation | Atomic steps or tasks that are needed to complete the overall job. |
 | Job Scheduler |  Subsystem that manages, controls, and optimizes the scheduling of jobs. |
-| Job Schedule Optimizer | Subsystem that finds the best order of job operations to minimize machine idle time and minimize makespan to complete all jobs. |
+| Schedule Optimizer | Subsystem that finds the best order of job operations to minimize machine idle time and minimize makespan to complete all jobs. |
 | Machine | Resource that performs the operations. |
 
 <br>
 
-A high-level topology of the job schedule system is in Figure 2.
+A high-level topology of the job schedule system is in Figure 1.
 
-<b>Figure 2 - Job Schedule (Agent/Environmental) System Topology</b>
+<b>Figure 1 - Job Schedule (Agent/Environmental) System Topology</b>
 
 <img src="images/job_scheduling_system_topology.jpeg" alt="drawing" width="700"/>
 
-A more detailed flow of the job schedule is in Figure 3 that shows how the system will function in real-time.
+A more detailed flow of the job schedule is in Figure 2 that shows how the system will function in real-time.
 
-<b>Figure 3 - Job Schedule (Agent/Environmental) Sequence Diagram</b>
+<b>Figure 2 - Job Schedule (Agent/Environmental) Sequence Diagram</b>
 
 <img src="images/job_scheduling_sequence_diagram.jpeg" alt="drawing" width="700"/>
 
@@ -124,23 +122,23 @@ The pseudo code for the Job Scheduler module is outlined below.  The code essent
         
         schedule_optimizer.analyze_schedule(schedule)
         
-        ∆E = schedule_optimzer.minimize_execution_time(schedule)
+        ∆E = schedule_optimizer.minimize_execution_time(schedule)
 
         if ∆E > 0 then: 
-          current=next
+          schedule.current = schedule.next
         else:
           # Generate a random value in the range 0 to 1
           r = rand.random(0,1) 
         
         if (e^(∆E / T) ≤ r) then:
           # Accept a worse solution with probability r
-          current = next 
+          schedule.current = schedule.next 
           i = i + 1
           
           # Cool the temperature by a factor of 0.99
           T = T * 0.99 
         else:
-          return current
+          continue
 ```
 
 ### Scheduler Optimizer
@@ -153,6 +151,7 @@ function analyze_schedule(schedule):
   next_job_sched=successor(schedule.current_job_sched,N) 
   next_opt_sched=allocate_ops_to_machines(schedule.next_job_schedule,N,O) 
 
+# objective function
 function minimize_execution_time(schedule):
   ∆E = comp_makespan(schedule.next_opt_sched)- comp_makespan(schedule.current_opt_sched)
   
