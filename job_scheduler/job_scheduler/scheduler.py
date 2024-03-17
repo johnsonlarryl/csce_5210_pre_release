@@ -3,51 +3,54 @@ import networkx as nx
 from networkx import DiGraph
 from networkx.readwrite import json_graph
 import numpy as np
-from typing import List
+from typing import List, Tuple, Union
 
-from job_scheduler.model import Job, JobTracker, Machine, Operation, Schedule
+from job_scheduler.model import Job, JobTracker, Operation, PARALLEL_MACHINES, Schedule
 from job_scheduler.optimizer import ScheduleOptimizer
 
 
 class JobScheduler:
-    def __init__(self, num_of_jobs: int,
-                 num_of_operations: int,
-                 num_of_operations_per_machine: int,
-                 num_of_operations_per_job: int,
-                 temperature: int = 1000) -> Schedule:
-        self.num_of_operations = num_of_operations
+    def __init__(self,
+                 schedule: Schedule,
+                 num_ops_per_machine: int,
+                 num_of_machines: int = 0,
+                 num_of_jobs: int = 0,
+                 num_of_operations_per_job: int = 0,
+                 debug: bool = False
+                 ) -> Schedule:
+
+        self.debug = debug
+        self.num_of_machines = num_of_machines
         self.num_of_jobs = num_of_jobs
-        self.num_of_operations_per_machine = num_of_operations_per_machine
+        self.num_of_operations_per_machine = num_ops_per_machine
 
-        generated_jobs = JobScheduler._generate_jobs(num_of_jobs,
-                                                     num_of_operations,
-                                                     num_of_operations_per_machine,
-                                                     num_of_operations_per_job)
+        if not schedule:
+            generated_jobs = JobScheduler._generate_jobs(num_of_jobs,
+                                                         num_ops_per_machine,
+                                                         num_of_operations_per_job)
 
-        self.schedule = Schedule(jobs=generated_jobs)
-        self.temperature = temperature
+            self.schedule = Schedule(jobs=generated_jobs)
+        else:
+            self.schedule = schedule
+
         self.schedule_optimizer = ScheduleOptimizer()
         self.current = None
         self.next = None
         self.makespan = 0
         self.job_tracker: List[JobTracker]
 
-    def execute_schedule(self, schedule_iterations: int = 400) -> int:
-        for schedule_iteration in range(1, schedule_iterations):
-            JobScheduler._process_job(self.schedule)
+
 
 
 
     @staticmethod
     def _generate_jobs(num_of_jobs: int,
-                       num_of_operations: int,
                        num_of_operations_per_machine: int,
                        num_of_operations_per_job: int) -> List[Job]:
         generated_jobs = []
 
         for job_id in np.random.permutation(np.array(range(1, num_of_jobs + 1))):
-            generated_operations = JobScheduler._generate_operations(num_of_operations,
-                                                                     num_of_operations_per_machine,
+            generated_operations = JobScheduler._generate_operations(num_of_operations_per_machine,
                                                                      num_of_operations_per_job)
 
             generated_jobs.append(Job(id=job_id, operations=generated_operations))
@@ -55,8 +58,7 @@ class JobScheduler:
         return generated_jobs
 
     # @staticmethod
-    # def _generate_operations(num_of_operations: int,
-    #                          num_of_operations_per_machine: int,
+    # def _generate_operations(num_of_operations_per_machine: int,
     #                          num_of_operations_per_job: int) -> List[Operation]:
     #     operations = DiGraph()
     #
@@ -80,19 +82,6 @@ class JobScheduler:
     def _allocate_ops_to_machines(schedule: Schedule) -> Operation:
         return schedule.next_job
 
-    @staticmethod
-    def _minimize_execution_time(schedule: Schedule):
-        delta_E = JobScheduler.compute_step_makespan(schedule.next_op_scheduled) - \
-                  JobScheduler.compute_step_makespan(schedule.current_op_scheduled)
-
-    @staticmethod
-    def compute_step_makespan(operation: Operation,
-                              num_of_operations_per_machine: int) -> int:
-        return min(operation.time, num_of_operations_per_machine)
-
-    # def compute_total_makespan(self):
-    #     for self.schedule
-
     def compute_idle_time(self):
         idle_time = 0
 
@@ -106,19 +95,19 @@ class JobScheduler:
         return json_graph.node_link_graph(schedule, directed=True)
 
     @staticmethod
-    def visualize_schedule(schedule: DiGraph, operation_size=550, location_font_size=10, operation_widths=1) -> None:
+    def visualize_schedule(job: DiGraph, fig_size: Tuple = (12, 8)) -> None:
 
-        pos = nx.nx_agraph.graphviz_layout(schedule, prog='dot')
-        plt.figure(figsize=(12, 8))
+        pos = nx.nx_agraph.graphviz_layout(job, prog='dot')
+        plt.figure(figsize=fig_size)
 
-        nx.draw(schedule, pos, with_labels=True, node_size=600, node_color="lightblue", font_size=10, arrows=True)
+        nx.draw(job, pos, with_labels=True, node_size=600, node_color="lightblue", font_size=10, arrows=True)
 
         # Edge labels workaround for potential multiedge issue
-        edge_labels = dict(((u, v), d['weight']) for u, v, d in schedule.edges(data=True))
-        for (u, v), weight in edge_labels.items():
+        edge_labels = dict(((source_operation, destination_operation), machine['weight']) for source_operation, destination_operation, machine in job.edges(data=True))
+        for (source_operation, destination_operation), weight in edge_labels.items():
             label = f"{weight}"
-            x, y = pos[u]
-            dx, dy = pos[v]
+            x, y = pos[source_operation]
+            dx, dy = pos[destination_operation]
             plt.text(x * 0.5 + dx * 0.5, y * 0.5 + dy * 0.5,
                      label,
                      horizontalalignment='center',
