@@ -1,8 +1,7 @@
-import networkx as nx
-from networkx import DiGraph
 import pytest
+from typing import List
 
-from job_scheduler.model import Job, Schedule
+from job_scheduler.model import Job, Operation, Schedule, ScheduledJobs
 from job_scheduler.scheduler import JobScheduler
 
 
@@ -166,8 +165,24 @@ def schedule() -> Schedule:
 
 
 @pytest.fixture()
+def scheduled_jobs() -> List[ScheduledJobs]:
+    job_1 = [Operation(job_id=1, id=1, time=3), Operation(job_id=1, id=2, time=6)]
+    job_2 = [Operation(job_id=2, id=1, time=10), Operation(job_id=2, id=2, time=1)]
+    job_3 = [Operation(job_id=3, id=1, time=3), Operation(job_id=3, id=2, time=2)]
+    job_4 = [Operation(job_id=4, id=1, time=2), Operation(job_id=4, id=2, time=4)]
+    job_5 = [Operation(job_id=5, id=1, time=8), Operation(job_id=5, id=2, time=8)]
+
+    operations = [job_4, job_1, job_5, job_3, job_2]
+    jobs = ScheduledJobs(operations=operations)
+
+    return jobs
+
+
+@pytest.fixture()
 def job_scheduler(schedule: Schedule) -> JobScheduler:
     num_ops_per_machine = 2
 
     return JobScheduler(schedule=schedule,
                         num_ops_per_machine=num_ops_per_machine)
+
+

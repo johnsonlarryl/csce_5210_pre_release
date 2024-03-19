@@ -7,11 +7,9 @@ PARALLEL_MACHINES = 'parallel_machines'
 
 @dataclass
 class Operation:
-    id: str
+    job_id: int
+    id: int
     time: int
-
-    def execute(self) -> None:
-        self.time -= 1
 
 
 @dataclass
@@ -71,8 +69,5 @@ class Machine:
 
 
 @dataclass
-class JobTracker:
-    operation_id: int
-    job_id: int
-    machine_id: int
-    idle_time: int
+class ScheduledJobs:
+    operations: List[Operation]
