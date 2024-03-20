@@ -179,10 +179,6 @@ def scheduled_jobs() -> List[ScheduledJob]:
 
 @pytest.fixture()
 def job_scheduler(scheduled_jobs: List[ScheduledJob]) -> JobScheduler:
-    # return JobScheduler(num_of_machines=2,
-    #                     num_ops_per_machine=2,
-    #                     scheduled_jobs=scheduled_jobs)
-
     return JobScheduler(num_of_machines=2,
                         num_ops_per_machine=2,
                         scheduled_jobs=scheduled_jobs)
