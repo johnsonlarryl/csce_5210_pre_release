@@ -172,7 +172,7 @@ def scheduled_jobs() -> List[ScheduledJob]:
     job_4 = ScheduledJob(job_id=4, operations=[Operation(id=1, time=2), Operation(id=2, time=4)])
     job_5 = ScheduledJob(job_id=5, operations=[Operation(id=1, time=8), Operation(id=2, time=8)])
 
-    job_operations = [job_4, job_1, job_5, job_3, job_2]
+    job_operations = [job_1, job_2, job_3, job_4, job_5]
 
     return job_operations
 

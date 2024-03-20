@@ -1,4 +1,6 @@
 import logging
+import random
+
 import matplotlib.pyplot as plt
 import networkx as nx
 from networkx import DiGraph
@@ -6,7 +8,7 @@ from networkx.readwrite import json_graph
 import sys
 from typing import Any, Dict, List, Set, Tuple
 
-from job_scheduler.model import Job, Link, LINKS, NODES, PARALLEL_MACHINES, Schedule, ScheduledJob, START_NODE
+from job_scheduler.model import Job, Link, LINKS, NODES, PARALLEL_MACHINES, Operation, Schedule, ScheduledJob, START_NODE
 
 logger = logging.getLogger(__name__)
 FORMAT = "%(asctime)s %(levelname)s %(message)s"
@@ -18,22 +20,31 @@ class JobScheduler:
     def __init__(self,
                  scheduled_jobs: ScheduledJob,
                  num_ops_per_machine: int,
-                 num_of_machines: int,
-                 num_of_jobs: int = 0,
-                 num_of_operations_per_job: int = 0) -> Schedule:
-        if scheduled_jobs:
-            self.scheduled_jobs = scheduled_jobs
-        else:
-            self.num_of_jobs = num_of_jobs
-            # TODO - generate scheduled_jobs using
-            # num_of_jobs and num_of_operations_per_job and
+                 num_of_machines: int) -> Schedule:
 
+        self.scheduled_jobs = scheduled_jobs
         self.num_of_machines = num_of_machines
         self.num_of_operations_per_machine = num_ops_per_machine
         self._init_job_allocations()
         self.idle_time = 0
         self.starting_machine_id = 0
         self.source_job = START_NODE
+
+    @staticmethod
+    def generate_scheduled_jobs(num_of_jobs: int,
+                                num_of_operations_per_job: int) -> ScheduledJob:
+        scheduled_jobs = []
+
+        for job_id in range(1, num_of_jobs + 2):
+            operations = []
+            for operation_num in range(1, num_of_operations_per_job + 1):
+                Operation(id=1, time=3)
+                operations.append(Operation(id=operation_num, time=random.choice(range(5, 51))))
+
+            job = ScheduledJob(job_id=job_id, operations=operations)
+            scheduled_jobs.append(job)
+
+        return scheduled_jobs
 
     def _init_job_allocations(self):
         self.job_allocations = {}

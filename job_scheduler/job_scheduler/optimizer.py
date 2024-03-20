@@ -1,5 +1,6 @@
 import copy
 import math
+import matplotlib.pyplot as plt
 import numpy as np
 import random
 from typing import List
@@ -64,6 +65,7 @@ class ScheduleOptimizer:
         return self._current_schedule.compute_makespan()
 
     def _successor(self) -> None:
+        # Get Random job
         current_job_scheduled = self._get_random_job()
         next_job_scheduled = self._get_random_job()
 
@@ -74,6 +76,21 @@ class ScheduleOptimizer:
         next_job = self._current_scheduled_jobs[next_job_scheduled]
 
         self._next_scheduled_jobs = copy.deepcopy(self._current_scheduled_jobs)
+
+        # Get Random operation
+        job_id_index = current_job.job_id - 1
+        current_operation_scheduled = self._get_random_operation(job_id_index)
+        next_operation_scheduled = self._get_random_operation(job_id_index)
+
+        while next_operation_scheduled == current_operation_scheduled:
+            next_operation_scheduled = self._get_random_operation(job_id_index)
+
+        current_operation = self._current_scheduled_jobs[job_id_index].operations[current_operation_scheduled]
+        next_operation = self._current_scheduled_jobs[job_id_index].operations[next_operation_scheduled]
+
+        self._next_scheduled_jobs[next_job_scheduled].operations[next_operation_scheduled] = next_operation
+        self._next_scheduled_jobs[current_job_scheduled].operations[next_operation_scheduled] = current_operation
+
         self._next_scheduled_jobs[current_job_scheduled] = next_job
         self._next_scheduled_jobs[next_job_scheduled] = current_job
 
@@ -81,6 +98,9 @@ class ScheduleOptimizer:
 
     def _get_random_job(self):
         return random.randint(0, len(self._current_scheduled_jobs) - 1)
+
+    def _get_random_operation(self, job_id_index: int):
+        return random.randint(0, len(self._current_scheduled_jobs[job_id_index].operations) - 1)
 
     def compute_makespan(self):
         return self._current_schedule.compute_makespan() - self._next_schedule.compute_makespan()
@@ -97,7 +117,38 @@ class ScheduleOptimizer:
         else:
             return np.empty(0)
 
+    def get_time_series(self, t: int) -> np.ndarray:
+        return np.arange(1, t, dtype=int)
 
+    def plot_make_span(self):
+        self.optimize()
+        t = self.get_time_series(self.schedule_iterations + 1)
+        y = self.get_makespan_time_series()
+
+        plt.figure(figsize=(10, 6))
+
+        plt.plot(t, y)
+        plt.title('Makespan over Time')
+        plt.xlabel('Time')
+        plt.ylabel('Makespan')
+
+        plt.tight_layout()
+        plt.show()
+
+    def plot_boltzmann_distributon(self):
+        fig, axs = plt.subplots(1, 3, figsize=(20, 10))
+
+        for i in range(3):
+            self.optimize()
+            y = self._probability_time_series
+
+            axs[i].plot(self.get_time_series(len(self._probability_time_series) + 1), y)
+            axs[i].set_title('Makespan over Time')
+            axs[i].set_xlabel('Time')
+            axs[i].set_ylabel('Makespan')
+
+        plt.tight_layout()
+        plt.show()
 
 
 
