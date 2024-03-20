@@ -3,11 +3,13 @@ from networkx import DiGraph
 from typing import List, Optional, Tuple
 
 PARALLEL_MACHINES = 'parallel_machines'
+NODES = "nodes"
+LINKS = "links"
+START_NODE = "start"
 
 
 @dataclass
 class Operation:
-    job_id: int
     id: int
     time: int
 
@@ -69,5 +71,14 @@ class Machine:
 
 
 @dataclass
-class ScheduledJobs:
+class ScheduledJob:
+    job_id: int
     operations: List[Operation]
+
+
+@dataclass(frozen=True)
+class Link:
+    source: str
+    target: str
+    weight: int
+

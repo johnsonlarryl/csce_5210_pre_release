@@ -3,15 +3,14 @@ import matplotlib.pyplot as plt
 import networkx as nx
 from networkx import DiGraph
 from networkx.readwrite import json_graph
-import numpy as np
-from typing import Any, Dict, List, Tuple, Union
+from typing import Dict, List, Set, Tuple
 
-from job_scheduler.model import Job, Operation, PARALLEL_MACHINES, Schedule, ScheduledJobs
+from job_scheduler.model import Job, Link, LINKS, NODES, PARALLEL_MACHINES, Schedule, ScheduledJob, START_NODE
 
 
 class JobScheduler:
     def __init__(self,
-                 scheduled_jobs: ScheduledJobs,
+                 scheduled_jobs: ScheduledJob,
                  num_ops_per_machine: int,
                  num_of_machines: int,
                  num_of_jobs: int = 0,
@@ -26,83 +25,141 @@ class JobScheduler:
         self.num_of_machines = num_of_machines
         self.num_of_operations_per_machine = num_ops_per_machine
         self._init_job_allocations()
-        pass
-
-        # if not schedule:
-        #     generated_jobs = JobScheduler._generate_jobs(num_of_jobs,
-        #                                                  num_ops_per_machine,
-        #                                                  num_of_operations_per_job)
-        #
-        #     self.schedule = Schedule(jobs=generated_jobs)
-        # else:
-        #     self.schedule = schedule
-        #
-        # self.current = None
-        # self.next = None
-        # self.makespan = 0
-        # self.job_tracker: List[JobTracker]
+        self.idle_time = 0
+        self.starting_machine_id = 1
+        self.source_job = START_NODE
 
     def _init_job_allocations(self):
         self.job_allocations = {}
 
-        for i in range(0, len(self.scheduled_jobs.operations)):
-            for operation in self.scheduled_jobs.operations[i]:
-                if operation.job_id not in self.job_allocations.keys():
-                    self.job_allocations[operation.job_id] = {}
+        for scheduled_job in self.scheduled_jobs:
+            for operation in scheduled_job.operations:
+                if scheduled_job.job_id not in self.job_allocations.keys():
+                    self.job_allocations[scheduled_job.job_id] = {}
 
-                self.job_allocations[operation.job_id][operation.id] = operation.time
+                self.job_allocations[scheduled_job.job_id][operation.id] = operation.time
 
-    def generate_schedule(self) -> Schedule: pass
+    def generate_schedule(self) -> Schedule:
+        jobs = []
 
-    # @staticmethod
-    # def _generate_jobs(num_of_jobs: int,
-    #                    num_of_operations_per_machine: int,
-    #                    num_of_operations_per_job: int) -> List[Job]:
-    #     generated_jobs = []
-    #
-    #     for job_id in np.random.permutation(np.array(range(1, num_of_jobs + 1))):
-    #         generated_operations = JobScheduler._generate_operations(num_of_operations_per_machine,
-    #                                                                  num_of_operations_per_job)
-    #
-    #         generated_jobs.append(Job(id=job_id, operations=generated_operations))
-    #
-    #     return generated_jobs
-    #
+        for scheduled_job in self.scheduled_jobs:
+            machines = self.schedule_machines()
+            jobs.append(Job(id=scheduled_job.job_id, operations=self._schedule_job(scheduled_job, machines)))
 
-    def _map_schedule(self) -> Dict: pass
+        return Schedule(jobs=jobs)
 
-    # def _map_job(self, root=False) -> Dict[Any, Any]:
-        # nodes = []
-        # links = []
-        #
-        # if root:
-        #     nodes.append({"id": "start"})
-        #
-        # for i in range(0, len(self.scheduled_jobs.operations)):
-        #     machine_allocations = self._init_machine_allocations()
-        #
-        #     for operation in self.scheduled_jobs.operations[i]:
-        #         nodes.append({"id": f"J{operation.job_id}"})
-        #
-        #         for j in range(1, len(self.num_of_machines + 1)):
+    def _schedule_job(self,
+                      scheduled_job: ScheduledJob,
+                      machines: List[int]) -> DiGraph:
+        job = {"directed": True}
 
+        temp_nodes: Set[str] = set()
+        links = []
+        nodes = []
+        j = 0
+        operation_job_id = 1
+        machine_source: Dict[int, str] = {}
 
-    def _generate_nodes(self) -> List[Dict]: pass
+        while not self._is_fully_executed(scheduled_job.job_id):
+            temp_links: Set[Link] = set()
 
+            temp_nodes.add(self.source_job)
 
-    def _init_machine_allocations(self) -> Dict[int, int]:
-        machine_allocations = {}
+            for machine_id in machines:
+                machine_source[machine_id] = self.source_job
 
-        for j in range(1, len(self.num_of_machines + 1)):
-            machine_allocations[j] = self.num_of_operations_per_machine
+            parallel_machines: List[Tuple[str, str]] = []
 
-        return machine_allocations
+            for machine_id in machines:
+                if self._is_fully_executed(scheduled_job.job_id):
+                    self.starting_machine_id = machine_id
+                    break
+                else:
+                    operation_id = j+1
 
+                    if self.job_allocations[scheduled_job.job_id][operation_id] > 0:
+                        node_id = self.get_node_id(scheduled_job.job_id, machine_id, operation_job_id)
+                        self.process_operation(scheduled_job,
+                                               machine_id,
+                                               operation_id,
+                                               machine_source,
+                                               temp_nodes,
+                                               temp_links,
+                                               parallel_machines,
+                                               node_id)
+                        machine_source[machine_id] = node_id
+                        self.source_job = node_id
+                        operation_job_id += 1
+                    else:
+                        if operation_id == len(self.job_allocations[scheduled_job.job_id].keys()):
+                            j = 0
+                        else:
+                            j += 1
 
-    @staticmethod
-    def _generate_operations(num_of_operations_per_machine: int,
-                             num_of_operations_per_job: int) -> List[Operation]:
-        pass
+                        continue
+
+                    if operation_id == len(self.job_allocations[scheduled_job.job_id].keys()):
+                        j = 0
+                    else:
+                        j += 1
+
+            for link in temp_links:
+                links.append({"source": link.source,
+                              "target": link.target,
+                              "weight": link.weight,
+                              PARALLEL_MACHINES: parallel_machines})
+
+        for node in temp_nodes:
+            nodes.append({"id": node})
+
+        job[NODES] = nodes
+        job[LINKS] = links
+
+        return JobScheduler.load_graph(job)
+
+    def schedule_machines(self) -> List[int]:
+        machines = []
+
+        while len(machines) < self.num_of_machines:
+            machines.append(self.starting_machine_id)
+            self.starting_machine_id += 1
+
+            if self.starting_machine_id > self.num_of_machines:
+                self.starting_machine_id = 1
+
+        return machines
+
+    def process_operation(self,
+                          scheduled_job: ScheduledJob,
+                          machine_id: int,
+                          operation_id: int,
+                          machine_source: Dict[int, str],
+                          temp_nodes: Set[str],
+                          temp_links: Set[Link],
+                          parallel_machines: List[Tuple[str, str]],
+                          node_id: int) -> None:
+        time = min(self.num_of_operations_per_machine, self.job_allocations[scheduled_job.job_id][operation_id])
+        self.idle_time += self.num_of_operations_per_machine - self.job_allocations[scheduled_job.job_id][operation_id]
+        temp_nodes.add(node_id)
+        link = Link(source=machine_source[machine_id],
+                    target=node_id,
+                    weight=time)
+        temp_links.add(link)
+        parallel_machines.append((machine_source[machine_id], node_id))
+        self.job_allocations[scheduled_job.job_id][operation_id] -= time
+
+        machine_source[machine_id] = node_id
+
+    def get_node_id(self, job_id: int, machine_id: int, operation_id: int) -> str:
+        return f"J{job_id}{machine_id}{operation_id}"
+
+    def _is_fully_executed(self, job_id):
+        time = 0
+
+        for operation_id in self.job_allocations[job_id].keys():
+            time += self.job_allocations[job_id][operation_id]
+
+        return time < 1
 
     @staticmethod
     def load_graph(schedule: str):
