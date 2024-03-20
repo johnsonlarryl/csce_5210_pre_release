@@ -77,7 +77,7 @@ class JobScheduler:
             for machine in range(1, self.num_of_machines + 1):
                 machine_id = self.schedule_machine()
 
-                for operation in range(1, self.num_of_operations_per_machine + 1):
+                for operation in range(1, self.num_of_operations_per_machine):
                     operation_id = JobScheduler.get_next_operation(operation_ids)
 
                     if operation_id == -1:
