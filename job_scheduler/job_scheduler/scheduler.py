@@ -65,7 +65,7 @@ class JobScheduler:
         operation_job_id = 1
         machine_source: Dict[int, str] = {}
         last_node_processed = None
-        operation_ids = [operation_id for operation_id in range(1, self.num_of_operations_per_machine + 1)]
+        operation_ids = [operation_id for operation_id in range(1, len(scheduled_job.operations) + 1)]
 
         while not self._is_job_fully_executed(scheduled_job.job_id):
             temp_links: Set[Link] = set()
@@ -75,38 +75,42 @@ class JobScheduler:
             parallel_machines: List[Tuple[str, str]] = []
 
             for i in range(1, self.num_of_operations_per_machine + 1):
-                operation_id = operation_ids.pop(0)
+                operation_id = JobScheduler.get_next_operation(operation_ids)
+
+                if operation_id == -1:
+                    break  # No more operations to process
 
                 if not self._is_job_fully_executed(scheduled_job.job_id):
                     while self.is_operation_fully_executed(scheduled_job, operation_id):
                         self.remove_operation(scheduled_job, operation_id)
 
-                        if len(operation_ids) > 0:
-                            operation_id = operation_ids.pop(0)
-                        else:
+                        operation_id = JobScheduler.get_next_operation(operation_ids)
+
+                        if operation_id == -1:
                             break  # No more operations to process
 
-                    machine_id = self.schedule_machine()
-                    logging.debug(f"Processing -> machine: {machine_id}, Job: {scheduled_job.job_id}, Operation: {operation_id}, Elapsed time before processing: {self.job_allocations[scheduled_job.job_id][operation_id]}")
+                    if not self._is_job_fully_executed(scheduled_job.job_id):
+                        machine_id = self.schedule_machine()
+                        logging.debug(f"Processing -> machine: {machine_id}, Job: {scheduled_job.job_id}, Operation: {operation_id}, Elapsed time before processing: {self.job_allocations[scheduled_job.job_id][operation_id]}")
 
-                    machine_source[machine_id] = self.source_job
-                    node_id = self.get_node_id(scheduled_job.job_id, machine_id, operation_job_id)
-                    self.process_operation(scheduled_job,
-                                           machine_id,
-                                           operation_id,
-                                           machine_source,
-                                           temp_nodes,
-                                           temp_links,
-                                           parallel_machines,
-                                           node_id)
-                    machine_source[machine_id] = node_id
-                    last_node_processed = node_id
-                    operation_ids.append(operation_id)
-                    operation_job_id += 1
+                        machine_source[machine_id] = self.source_job
+                        node_id = self.get_node_id(scheduled_job.job_id, machine_id, operation_job_id)
+                        self.process_operation(scheduled_job,
+                                               machine_id,
+                                               operation_id,
+                                               machine_source,
+                                               temp_nodes,
+                                               temp_links,
+                                               parallel_machines,
+                                               node_id)
+                        machine_source[machine_id] = node_id
+                        last_node_processed = node_id
+                        operation_ids.append(operation_id)
+                        operation_job_id += 1
 
-                    logging.debug(f"Parallel Job: {i} -> {parallel_machines}")
-                    logging.debug(f"Temp Link: {temp_links}")
-                    logging.debug(f"Processing -> machine: {machine_id}, Job: {scheduled_job.job_id}, Operation: {operation_id}, Elapsed time after processing: {self.job_allocations[scheduled_job.job_id][operation_id]}")
+                        logging.debug(f"Parallel Job: {i} -> {parallel_machines}")
+                        logging.debug(f"Temp Link: {temp_links}")
+                        logging.debug(f"Processing -> machine: {machine_id}, Job: {scheduled_job.job_id}, Operation: {operation_id}, Elapsed time after processing: {self.job_allocations[scheduled_job.job_id][operation_id]}")
 
             self.source_job = last_node_processed
 
@@ -123,6 +127,13 @@ class JobScheduler:
         job[LINKS] = links
 
         return JobScheduler.load_graph(job)
+
+    @staticmethod
+    def get_next_operation(operation_ids: List[int]) -> int:
+        if len(operation_ids) > 0:
+            return operation_ids.pop(0)
+        else:
+            return -1  # No more operations to process
 
     def remove_operation(self, scheduled_job:ScheduledJob, operation_id: int) -> None:
         if operation_id in self.job_allocations[scheduled_job.job_id].keys():
