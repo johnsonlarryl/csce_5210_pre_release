@@ -1,9 +1,8 @@
-import json
 import matplotlib.pyplot as plt
 import networkx as nx
 from networkx import DiGraph
 from networkx.readwrite import json_graph
-from typing import Dict, List, Set, Tuple
+from typing import Any, Dict, List, Set, Tuple
 
 from job_scheduler.model import Job, Link, LINKS, NODES, PARALLEL_MACHINES, Schedule, ScheduledJob, START_NODE
 
@@ -50,7 +49,7 @@ class JobScheduler:
 
     def _schedule_job(self,
                       scheduled_job: ScheduledJob,
-                      machines: List[int]) -> DiGraph:
+                      machines: List[int]) -> Dict[str, Any]:
         job = {"directed": True}
 
         temp_nodes: Set[str] = set()
@@ -115,7 +114,7 @@ class JobScheduler:
         job[NODES] = nodes
         job[LINKS] = links
 
-        return JobScheduler.load_graph(job)
+        return job
 
     def schedule_machines(self) -> List[int]:
         machines = []
