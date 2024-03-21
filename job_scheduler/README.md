@@ -108,7 +108,7 @@ The various variables or parameters that will be utilized within the job schedul
 
 
 ### Job Scheduler
-The pseudo code for the Job Scheduler module is outlined below.  The code essentially outlines the usage of an empirical gradient where progress is measured by the objective function to minimize the makespan.  This is accomplished by evaluating the scheduling differences between the next job operation and the current one.
+The pseudo code for the Job Scheduler module is outlined below.  The code essentially outlines the usage of a decision-making process based on the evaluation of the objective function.  At different points in the state space, the solution is guided by a Boltzmann probability distribution for escaping local optima where progress is measured by the objective function to minimize the makespan.  This is accomplished by evaluating the scheduling differences between the next job operation and the current one.
 ```shell
     T = 1000 	# Set the initial temperature T
     schedule.create_schedule(machines, jobs)
