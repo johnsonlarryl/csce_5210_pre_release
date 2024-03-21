@@ -1,0 +1,17 @@
+name: job_scheduler
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - jupyter
+  - matplotlib
+  - networkx
+  - pandas
+  - pydot
+  - pygraphviz
+  - python=3.9.5
+  - pytest
+  - scikit-learn
+  - seaborn
